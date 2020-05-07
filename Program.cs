@@ -20,7 +20,7 @@ namespace WikiSeasonRetriever
             
             List<Section> sectionSeason = retrievedJson.parse.sections;
 
-            Console.WriteLine(CheckSingleSeasonPage(sectionSeason));
+            Console.WriteLine("Index Number: {0}", GetEpisodeSectionIndex(sectionSeason));
                         
         }
 
@@ -50,30 +50,32 @@ namespace WikiSeasonRetriever
             return wikiJsonSection;
         }
 
-        private static Boolean CheckSingleSeasonPage(List<Section> wikiSections)
+        private static int GetEpisodeSectionIndex(List<Section> wikiSections)
         {
+            //Checks whether the page contains a single season of all seasons of the series
+
             int sectionSize = wikiSections.Count;
             int indexPos = 0;
 
             while(indexPos < sectionSize)
             {
-                string wikiLine = wikiSections[indexPos].line;
+                Section section = wikiSections[indexPos];
 
-                if(wikiLine.Equals("Episode list"))
+                if(section.line.Equals("Episode list"))
                 {
                     Console.WriteLine("Single season page");
-                    return true;
+                    return Convert.ToInt32(section.index);
                 }
-                else if(wikiLine.Equals("Episodes"))
+                else if(section.line.Equals("Episodes"))
                 {
                     Console.WriteLine("Multi season page");
-                    return false;
+                    return Convert.ToInt32(section.index);
                 }
                 
                 indexPos++;
             }
 
-            return false;
+            return 0;
         }
 
     }
