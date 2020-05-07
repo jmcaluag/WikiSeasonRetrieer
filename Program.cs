@@ -7,11 +7,18 @@ namespace WikiSeasonRetriever
         static void Main(string[] args)
         {
             Console.Write("Enter Wikipedia URL: " );
-            string wikiURL = Console.ReadLine().Trim();
+            string wikiURL = Console.ReadLine();
 
-            string pageAttribute = GetWikiSubdirectory(wikiURL);
+            Console.WriteLine(GetWikiUri(wikiURL));
+        }
 
-            Console.WriteLine(pageAttribute);
+        static string GetWikiUri(string wikiURL)
+        {
+            wikiURL = wikiURL.Trim();
+            string wikiUriFormat = "https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=sections&page=";
+            string subDirectory = GetWikiSubdirectory(wikiURL);
+            
+            return wikiUriFormat + subDirectory;
         }
 
         static string GetWikiSubdirectory(string wikiURL)
@@ -22,5 +29,6 @@ namespace WikiSeasonRetriever
             
             return wikiURL.Substring(number);
         }
+
     }
 }
