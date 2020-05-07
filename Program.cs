@@ -24,7 +24,19 @@ namespace WikiSeasonRetriever
 
             while(indexPos < sectionSize)
             {
-                Console.WriteLine(String.Format("Index: {0} - Section: {1}", sectionSeason[indexPos].index, sectionSeason[indexPos].line));
+                string wikiLine = sectionSeason[indexPos].line;
+
+                if(wikiLine.Equals("Episode list"))
+                {
+                    Console.WriteLine("Single season page");
+                    break;
+                }
+                else if(wikiLine.Equals("Episodes"))
+                {
+                    Console.WriteLine("Multi season page");
+                    break;
+                }
+                
                 indexPos++;
             }
                         
