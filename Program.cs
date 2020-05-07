@@ -17,10 +17,17 @@ namespace WikiSeasonRetriever
 
             string wikiURI = GetWikiUri(wikiURL);
             WikiSection retrievedJson = await RetrieveWikiJSON(wikiURI);
+            
+            List<Section> sectionSeason = retrievedJson.parse.sections;
+            int sectionSize = sectionSeason.Count;
+            int indexPos = 0;
 
-            string alpha = retrievedJson.parse.sections[0].fromtitle;
-
-            Console.WriteLine("Title: " + alpha);
+            while(indexPos < sectionSize)
+            {
+                Console.WriteLine(String.Format("Index: {0} - Section: {1}", sectionSeason[indexPos].index, sectionSeason[indexPos].line));
+                indexPos++;
+            }
+                        
         }
 
         private static string GetWikiUri(string wikiURL)
