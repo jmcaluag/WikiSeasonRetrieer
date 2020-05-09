@@ -21,13 +21,18 @@ namespace WikiSeasonRetriever
             string wikiURL = Console.ReadLine();
 
             string wikiURI = GetWikiUri(wikiURL);
-            WikiSection retrievedJson = await GetWikiSectionJson(wikiURI);
+            WikiSection retrievedSectionJson = await GetWikiSectionJson(wikiURI);
             
-            List<Section> sectionSeason = retrievedJson.SectionParse.Sections;
+            List<Section> sectionSeason = retrievedSectionJson.SectionParse.Sections;
 
             if(CheckSingleOrMultiSeason(sectionSeason))
             {
                 Console.WriteLine("Single season page");
+                //Find index of "line": "Episode list", use index to access section and get season wikitext.
+
+                Console.WriteLine("Index: {0}", GetEpisodeListIndex(sectionSeason));
+
+
             }
             else
             {
@@ -96,12 +101,30 @@ namespace WikiSeasonRetriever
             return false;
         }
 
-        //Single-season page methods
+    //Single-season page methods
+        private static int GetEpisodeListIndex(List<Section> wikiSections)
+        {
+            int sectionSize = wikiSections.Count;
+            int indexPos = 0;
+
+            while(indexPos < sectionSize)
+            {
+                Section section = wikiSections[indexPos];
+                
+                if(section.Line.Equals("Episode list"))
+                {
+                    return Convert.ToInt32(section.Index);
+                }
+                
+                indexPos++;
+            }
+
+            return 0;
+        }
         
+    //End of single-season page methods
 
-        //End of single-season page methods
-
-        //Multi-season page methods
+    //Multi-season page methods
 
         private static void ShowIndexAndSeason(List<Section> wikiSections)
         {
@@ -122,7 +145,7 @@ namespace WikiSeasonRetriever
                 indexPos++;
             }
         }
-        //End of multi-season page methods
+    //End of multi-season page methods
 
         private static string GetSeasonSection(string subDirectory, int indexSection)
         {
