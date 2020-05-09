@@ -21,9 +21,9 @@ namespace WikiSeasonRetriever
             string wikiURL = Console.ReadLine();
 
             string wikiURI = GetWikiUri(wikiURL);
-            WikiSection retrievedJson = await RetrieveWikiJSON(wikiURI);
+            WikiSection retrievedJson = await GetWikiSectionJson(wikiURI);
             
-            List<Section> sectionSeason = retrievedJson.parse.sections;
+            List<Section> sectionSeason = retrievedJson.SectionParse.Sections;
 
             if(CheckSingleOrMultiSeason(sectionSeason))
             {
@@ -36,7 +36,11 @@ namespace WikiSeasonRetriever
                 Console.Write("Enter index of chosen season: ");
                 int indexOfSeason = Convert.ToInt32(Console.ReadLine());
 
-                Console.WriteLine("Wiki URI: {0}", GetSeasonSection(GetWikiSubdirectory(wikiURL), indexOfSeason));
+                string wikiSectionURI = GetSeasonSection(GetWikiSubdirectory(wikiURL), indexOfSeason);
+
+                WikiTextSeason seasonJson = await GetSeasonJson(wikiSectionURI);
+
+                Console.WriteLine("Wiki Text Season: {0}", seasonJson.SeasonParse.SeasonWikitext.Content);
             }
                                     
         }
@@ -59,12 +63,12 @@ namespace WikiSeasonRetriever
             return wikiURL.Substring(number);
         }
 
-        private static async Task<WikiSection> RetrieveWikiJSON(string wikiURI)
+        private static async Task<WikiSection> GetWikiSectionJson(string wikiURI)
         {
             string response = await client.GetStringAsync(wikiURI);
-            WikiSection wikiJsonSection = JsonSerializer.Deserialize<WikiSection>(response);
+            WikiSection wikiSectionJson = JsonSerializer.Deserialize<WikiSection>(response);
 
-            return wikiJsonSection;
+            return wikiSectionJson;
         }
 
         private static Boolean CheckSingleOrMultiSeason(List<Section> wikiSections)
@@ -78,7 +82,7 @@ namespace WikiSeasonRetriever
             {
                 Section section = wikiSections[indexPos];
                 
-                switch(section.line)
+                switch(section.Line)
                 {
                     case "Episode list":
                         return true;
@@ -110,23 +114,29 @@ namespace WikiSeasonRetriever
             {
                 Section section = wikiSections[indexPos];
 
-                if(rgxPattern.IsMatch(section.line))
+                if(rgxPattern.IsMatch(section.Line))
                 {
-                    Console.WriteLine("Index: {0} - {1}", section.index, section.line);
+                    Console.WriteLine("Index: {0} - {1}", section.Index, section.Line);
                 }
                 
                 indexPos++;
             }
         }
+        //End of multi-season page methods
 
         private static string GetSeasonSection(string subDirectory, int indexSection)
         {
-            string selectedSectionUri = String.Format("https://en.wikipedia.org/w/api.php?action=parse&format=json&page={0}&prop=wikitext&section={1}", subDirectory, indexSection);
+            string selectedSectionURI = String.Format("https://en.wikipedia.org/w/api.php?action=parse&format=json&page={0}&prop=wikitext&section={1}", subDirectory, indexSection);
 
-            return selectedSectionUri;
+            return selectedSectionURI;
         }
 
-        //End of multi-season page methods
+        private static async Task<WikiTextSeason> GetSeasonJson(string wikiURI)
+        {
+            string response = await client.GetStringAsync(wikiURI);
+            WikiTextSeason wikiSeason = JsonSerializer.Deserialize<WikiTextSeason>(response);
 
+            return wikiSeason;
+        }
     }
 }
