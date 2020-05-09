@@ -14,6 +14,8 @@ namespace WikiSeasonRetriever
         static async Task Main(string[] args)
         {
 
+            PrintLogo();
+
             Console.Write("Is there ONLY ONE season in the series page? [Y/N]: ");
             char oneSeason = Convert.ToChar(Console.ReadLine());
 
@@ -52,6 +54,14 @@ namespace WikiSeasonRetriever
                 Console.WriteLine("Wiki Text Season: {0}", seasonJson.SeasonParse.SeasonWikitext.Content);
             }
                                     
+        }
+
+        private static void PrintLogo()
+        {
+            string retrieverLogo = "\n\n\n                  -.`  -sys+:`                                                 \n                  hMMMNNMMMMMMMd/                                               \n                  yMMMMMMMMMMMMMMh                                              \n                 -yNMMMMMMMMMMMMMMs                                             \n                 -dMMMMMMMMMMMMMMMN.                                            \n                   `-dMMMMMMMMMMMMN-                                            \n                     yMMMMMMMMMMMM.                                             \n                     `NMMMMMMMMMMMs:                                            \n                      yMMMMMMMMMMMMMd+`                                         \n                      hMMMMMMMMMMMMMMMMy:                                       \n                     oMMMMMMMMMMMMMMMMMMMd:                                     \n                     yMMMMMMMMMMMMMMMMMMMMMo                                    \n                     :MMMMMMMMMMMMMMMMMMMMMMy`                                  \n                      hMMMMMMMMMMMMMMMMMMMMMMm`                                 \n                      .MMMMMMMMMMMMMMMMMMMMMMMm-                                \n                       MMMMMMMMMMMMMMMMMMMMMMMMN+                               \n                      `MMMMMMMMMMMMMMMMMMMMMMMMMM.                              \n                      yMMMMMMMMMMMMMMMMMMMMMMMMMMs                              \n                      NMMMMo/MMMMMMMMMMMMMMMMMMMMy                              \n                     /MMMMNsdMMMMMMMMMMMMMMMMMMMMm/.`                           \n                  :ydMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNNNmdhs:                  \n                 `syyyso+/::::::///++oooo++////:://///++osssss:                 \n\n\n";
+
+            Console.WriteLine("Golden Wiki Season Retriever");
+            Console.WriteLine(retrieverLogo);
         }
 
         private static string GetWikiUri(string wikiURL)
