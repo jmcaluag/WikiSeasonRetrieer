@@ -30,9 +30,13 @@ namespace WikiSeasonRetriever
                 Console.WriteLine("Single season page");
                 //Find index of "line": "Episode list", use index to access section and get season wikitext.
 
-                Console.WriteLine("Index: {0}", GetEpisodeListIndex(sectionSeason));
+                int episodeListIndex = GetEpisodeListIndex(sectionSeason);
 
+                string wikiSectionURI = GetSeasonSection(GetWikiSubdirectory(wikiURL), episodeListIndex);
 
+                WikiTextSeason seasonJson = await GetSeasonJson(wikiSectionURI);
+
+                Console.WriteLine("Wiki Text Season: {0}", seasonJson.SeasonParse.SeasonWikitext.Content);
             }
             else
             {
