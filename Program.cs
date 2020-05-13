@@ -27,6 +27,7 @@ namespace WikiSeasonRetriever
             
             List<Section> sectionSeason = retrievedSectionJson.SectionParse.Sections;
 
+            //This if..else can be turned into a method
             if(CheckSingleOrMultiSeason(sectionSeason))
             {
                 Console.WriteLine("Single season page");
