@@ -41,7 +41,7 @@ namespace WikiSeasonRetriever
 
             string contentOfSeasonSection = seasonSection.SeasonParse.SeasonWikitext.Content;
 
-            Console.WriteLine(contentOfSeasonSection);
+            Console.WriteLine(CreateSeasonPageURL(contentOfSeasonSection));
                                     
         }
 
@@ -83,6 +83,8 @@ namespace WikiSeasonRetriever
 
         private static string RetrieveSeriesSeason(char oneSeason)
         {
+            string episodeListSectionURI = null;
+
             switch(oneSeason)
             {
                 case 'Y':
@@ -90,15 +92,21 @@ namespace WikiSeasonRetriever
                     int episodeListIndexPosition = GetEpisodesIndex();
 
                     //Uses index number to get section of the one season.
-                    string episodeListSectionURI = CreateEpisodeListSectionURI(episodeListIndexPosition);
+                    episodeListSectionURI = CreateEpisodeListSectionURI(episodeListIndexPosition);
 
-                    return episodeListSectionURI;
+                    break;
 
                 case 'N':
-                    return "Placeholder";
+                    ShowIndexAndSeason();
+                    Console.Write("\nEnter INDEX of season:");
+                    int chosenIndexNumber = Convert.ToInt32(Console.ReadLine());
+
+                    episodeListSectionURI = CreateEpisodeListSectionURI(chosenIndexNumber);
+
+                    break;
             }
 
-            return "Won't reach here";
+            return episodeListSectionURI;
         }
     
     //Single-season page methods
@@ -125,18 +133,18 @@ namespace WikiSeasonRetriever
     //End of single-season page methods
 
     //Multi-season page methods
-        private static void ShowIndexAndSeason(List<Section> wikiSections)
+        private static void ShowIndexAndSeason()
         {
-            int sectionSize = wikiSections.Count;
+            int sectionSize = wikipediaPageSections.Count;
             int indexPos = 0;
 
-            Regex rgxPattern = new Regex(@"Season \d[\W]+");
+            Regex regexPattern = new Regex(@"Season \d[\W]+");
 
             while(indexPos < sectionSize)
             {
-                Section section = wikiSections[indexPos];
+                Section section = wikipediaPageSections[indexPos];
 
-                if(rgxPattern.IsMatch(section.Line))
+                if(regexPattern.IsMatch(section.Line))
                 {
                     Console.WriteLine("Index: {0} - {1}", section.Index, section.Line);
                 }
@@ -159,6 +167,25 @@ namespace WikiSeasonRetriever
             WikitextSeason wikiSeason = JsonSerializer.Deserialize<WikitextSeason>(response);
 
             return wikiSeason;
+        }
+
+        private static string CreateSeasonPageURL(string contentOfSeasonSection)
+        {
+            Regex regexPattern = new Regex(@"{:[\w\s()]+");
+
+            string wikipediaURL = "https://en.wikipedia.org/wiki/";
+
+            string seasonPageURL = null;
+
+            if(regexPattern.IsMatch(contentOfSeasonSection))
+            {
+                string seasonPageSubdirectory = regexPattern.Match(contentOfSeasonSection).Value.Substring(2);
+
+                seasonPageURL = wikipediaURL + seasonPageSubdirectory.Trim().Replace(' ', '_');
+            }
+
+            return seasonPageURL;
+
         }
     }
 }
