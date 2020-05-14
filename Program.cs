@@ -11,48 +11,37 @@ namespace WikiSeasonRetriever
     {
         private static readonly HttpClient client = new HttpClient();
 
+        private static List<Section> wikipediaPageSections;
+
+        private static string subDirectory;
+
         static async Task Main(string[] args)
         {
 
             PrintLogo();
 
-            Console.Write("Is there ONLY ONE season in the series page? [Y/N]: ");
-            char oneSeason = Convert.ToChar(Console.ReadLine());
-
             Console.Write("Enter Wikipedia URL: " );
             string wikiURL = Console.ReadLine();
 
+            Console.Write("Is there ONLY ONE season? [Y/N]: ");
+            char oneSeason = Char.ToUpper(Convert.ToChar(Console.ReadLine()));
+
+            //Creates the REST API URI
             string wikiURI = GetWikiUri(wikiURL);
+
+            //Retrieves the sections on a Wikipedia page as a JSON object.
             WikiSection retrievedSectionJson = await GetWikiSectionJson(wikiURI);
-            
-            List<Section> sectionSeason = retrievedSectionJson.SectionParse.Sections;
 
-            if(CheckSingleOrMultiSeason(sectionSeason))
-            {
-                Console.WriteLine("Single season page");
-                //Find index of "line": "Episode list", use index to access section and get season wikitext.
+            //Gets the sections and turns it into a C# list.
+            wikipediaPageSections = retrievedSectionJson.SectionParse.Sections;
 
-                int episodeListIndex = GetEpisodeListIndex(sectionSeason);
+            //Either finds the Episodes sections of lists out the season and their index
+            string wikipediaEpisodeListURI = RetrieveSeriesSeason(oneSeason);
+            WikitextSeason seasonSection = await GetSeasonSectionAsJSON(wikipediaEpisodeListURI);
 
-                string wikiSectionURI = GetSeasonSection(GetWikiSubdirectory(wikiURL), episodeListIndex);
+            string contentOfSeasonSection = seasonSection.SeasonParse.SeasonWikitext.Content;
 
-                WikiTextSeason seasonJson = await GetSeasonJson(wikiSectionURI);
-
-                Console.WriteLine("Wiki Text Season: {0}", seasonJson.SeasonParse.SeasonWikitext.Content);
-            }
-            else
-            {
-                ShowIndexAndSeason(sectionSeason);
-
-                Console.Write("Enter index of chosen season: ");
-                int indexOfSeason = Convert.ToInt32(Console.ReadLine());
-
-                string wikiSectionURI = GetSeasonSection(GetWikiSubdirectory(wikiURL), indexOfSeason);
-
-                WikiTextSeason seasonJson = await GetSeasonJson(wikiSectionURI);
-
-                Console.WriteLine("Wiki Text Season: {0}", seasonJson.SeasonParse.SeasonWikitext.Content);
-            }
+            Console.WriteLine(contentOfSeasonSection);
                                     
         }
 
@@ -79,7 +68,9 @@ namespace WikiSeasonRetriever
 
             int number = wikiURL.IndexOf("wiki/") + indexShift;
             
-            return wikiURL.Substring(number);
+            subDirectory = wikiURL.Substring(number);
+            
+            return subDirectory;
         }
 
         private static async Task<WikiSection> GetWikiSectionJson(string wikiURI)
@@ -90,47 +81,42 @@ namespace WikiSeasonRetriever
             return wikiSectionJson;
         }
 
-        private static Boolean CheckSingleOrMultiSeason(List<Section> wikiSections)
+        private static string RetrieveSeriesSeason(char oneSeason)
         {
-            //Checks whether the page contains a single season of all seasons of the series
-
-            int sectionSize = wikiSections.Count;
-            int indexPos = 0;
-
-            while(indexPos < sectionSize)
+            switch(oneSeason)
             {
-                Section section = wikiSections[indexPos];
-                
-                switch(section.Line)
-                {
-                    case "Episode list":
-                        return true;
-                    case "Episodes":
-                        return false;
-                }
-                
-                indexPos++;
+                case 'Y':
+                    //Find index number of "Episode list" or "Episodes"
+                    int episodeListIndexPosition = GetEpisodesIndex();
+
+                    //Uses index number to get section of the one season.
+                    string episodeListSectionURI = CreateEpisodeListSectionURI(episodeListIndexPosition);
+
+                    return episodeListSectionURI;
+
+                case 'N':
+                    return "Placeholder";
             }
 
-            return false;
+            return "Won't reach here";
         }
-
+    
     //Single-season page methods
-        private static int GetEpisodeListIndex(List<Section> wikiSections)
+        private static int GetEpisodesIndex()
         {
-            int sectionSize = wikiSections.Count;
-            int indexPos = 0;
+            int numberOfSections = wikipediaPageSections.Count;
+            int indexPosition = 0;
 
-            while(indexPos < sectionSize)
+            while(indexPosition < numberOfSections)
             {
-                Section section = wikiSections[indexPos];
-                
-                if(section.Line.Equals("Episode list"))
+                Section section = wikipediaPageSections[indexPosition];
+
+                if(section.Line.Equals("Episode list") || section.Line.Equals("Episodes"))
                 {
                     return Convert.ToInt32(section.Index);
                 }
-                
-                indexPos++;
+
+                indexPosition++;
             }
 
             return 0;
@@ -139,7 +125,6 @@ namespace WikiSeasonRetriever
     //End of single-season page methods
 
     //Multi-season page methods
-
         private static void ShowIndexAndSeason(List<Section> wikiSections)
         {
             int sectionSize = wikiSections.Count;
@@ -161,17 +146,17 @@ namespace WikiSeasonRetriever
         }
     //End of multi-season page methods
 
-        private static string GetSeasonSection(string subDirectory, int indexSection)
+        private static string CreateEpisodeListSectionURI(int indexSection)
         {
             string selectedSectionURI = String.Format("https://en.wikipedia.org/w/api.php?action=parse&format=json&page={0}&prop=wikitext&section={1}", subDirectory, indexSection);
 
             return selectedSectionURI;
         }
 
-        private static async Task<WikiTextSeason> GetSeasonJson(string wikiURI)
+        private static async Task<WikitextSeason> GetSeasonSectionAsJSON(string wikiURI)
         {
             string response = await client.GetStringAsync(wikiURI);
-            WikiTextSeason wikiSeason = JsonSerializer.Deserialize<WikiTextSeason>(response);
+            WikitextSeason wikiSeason = JsonSerializer.Deserialize<WikitextSeason>(response);
 
             return wikiSeason;
         }

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-class WikiTextSeason
+class WikitextSeason
 {
     [JsonPropertyName("parse")]
     public SeasonParse SeasonParse { get; set; }
