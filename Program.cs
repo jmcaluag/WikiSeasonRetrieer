@@ -27,13 +27,13 @@ namespace WikiSeasonRetriever
             char oneSeason = Char.ToUpper(Convert.ToChar(Console.ReadLine()));
 
             //Creates the REST API URI
-            string wikiURI = GetWikiUri(wikiURL);
+            string wikiURI = GetWikiURI(wikiURL);
 
             //Retrieves the sections on a Wikipedia page as a JSON object.
-            WikiSection retrievedSectionJson = await GetWikiSectionJson(wikiURI);
+            WikiSection retrievedSectionJSON = await GetWikiSectionJSON(wikiURI);
 
             //Gets the sections and turns it into a C# list.
-            wikipediaPageSections = retrievedSectionJson.SectionParse.Sections;
+            wikipediaPageSections = retrievedSectionJSON.SectionParse.Sections;
 
             //Either finds the Episodes sections of lists out the season and their index
             string wikipediaEpisodeListURI = RetrieveSeriesSeason(oneSeason);
@@ -41,8 +41,22 @@ namespace WikiSeasonRetriever
 
             string contentOfSeasonSection = seasonSection.SeasonParse.SeasonWikitext.Content;
 
-            Console.WriteLine(CreateSeasonPageURL(contentOfSeasonSection));
-                                    
+            if(CheckForSeasonPage(contentOfSeasonSection))
+            {
+                //Turn this into a method.  This repeats some of the steps above!
+                string seasonPageURL = CreateSeasonPageURL(contentOfSeasonSection);
+                string seasonPageURI = GetWikiURI(seasonPageURL);
+                retrievedSectionJSON = await GetWikiSectionJSON(seasonPageURI);
+                wikipediaPageSections = retrievedSectionJSON.SectionParse.Sections;
+                wikipediaEpisodeListURI = RetrieveSeriesSeason('Y');
+                seasonSection = await GetSeasonSectionAsJSON(wikipediaEpisodeListURI);
+                contentOfSeasonSection = seasonSection.SeasonParse.SeasonWikitext.Content;
+                Console.WriteLine(contentOfSeasonSection);
+            }
+            else
+            {
+                Console.WriteLine(contentOfSeasonSection);
+            }
         }
 
         private static void PrintLogo()
@@ -53,7 +67,7 @@ namespace WikiSeasonRetriever
             Console.WriteLine(retrieverLogo);
         }
 
-        private static string GetWikiUri(string wikiURL)
+        private static string GetWikiURI(string wikiURL)
         {
             wikiURL = wikiURL.Trim();
             string wikiUriFormat = "https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=sections&page=";
@@ -73,7 +87,7 @@ namespace WikiSeasonRetriever
             return subDirectory;
         }
 
-        private static async Task<WikiSection> GetWikiSectionJson(string wikiURI)
+        private static async Task<WikiSection> GetWikiSectionJSON(string wikiURI)
         {
             string response = await client.GetStringAsync(wikiURI);
             WikiSection wikiSectionJson = JsonSerializer.Deserialize<WikiSection>(response);
@@ -167,6 +181,19 @@ namespace WikiSeasonRetriever
             WikitextSeason wikiSeason = JsonSerializer.Deserialize<WikitextSeason>(response);
 
             return wikiSeason;
+        }
+
+        private static Boolean CheckForSeasonPage(string contentOfSeasonSection)
+        {
+            Regex regexPattern = new Regex(@"{:[\w\s()]+");
+            Boolean seasonPageExist = false;
+
+            if(regexPattern.IsMatch(contentOfSeasonSection))
+            {
+                seasonPageExist = true;
+            }
+
+            return seasonPageExist;
         }
 
         private static string CreateSeasonPageURL(string contentOfSeasonSection)
