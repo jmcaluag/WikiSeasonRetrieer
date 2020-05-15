@@ -27,14 +27,14 @@ namespace WikiSeasonRetriever
             //Creates the REST API URI
             string wikiURI = GetWikiURI(wikiURL);
 
-            string wikitextContentOfSeasonSection = await GetSeasonWikitext(wikiURI, oneSeason);
+            string wikitextContentOfSeasonSection = await GetWikitextSeason(wikiURI, oneSeason);
 
             if(CheckForSeasonPage(wikitextContentOfSeasonSection))
             {
                 string seasonPageURL = CreateSeasonPageURL(wikitextContentOfSeasonSection);
                 string seasonPageURI = GetWikiURI(seasonPageURL);
 
-                wikitextContentOfSeasonSection = await GetSeasonWikitext(seasonPageURI, 'Y');
+                wikitextContentOfSeasonSection = await GetWikitextSeason(seasonPageURI, 'Y');
 
                 Console.WriteLine(wikitextContentOfSeasonSection);
             }
@@ -53,7 +53,7 @@ namespace WikiSeasonRetriever
         }
         
         //Work in Progress:
-        private static async Task<string> GetSeasonWikitext(string wikiURI, char oneSeason)
+        private static async Task<string> GetWikitextSeason(string wikiURI, char oneSeason)
         {
             WikiSection retrievedSectionJSON = await GetWikiSectionJSON(wikiURI);
 
