@@ -37,12 +37,32 @@ namespace WikiSeasonRetriever
                 string seasonPageURI = GetWikiURI(seasonPageURL);
 
                 wikitextContentOfSeasonSection = await GetWikitextSeason(seasonPageURI, 'Y');
-
             }
 
             //Parsing and Scraping for Episode Details
-            
             StartParser(wikitextContentOfSeasonSection);
+
+            //Test
+            Console.WriteLine("\n---------------");
+            Console.WriteLine("Test");
+            Console.Write("Enter an episode number: ");
+            int episodeNumber = Convert.ToInt32(Console.ReadLine()) - 1;
+
+            Console.WriteLine();
+
+            Console.WriteLine("Season: {0}", seasonList[episodeNumber].season);
+            Console.WriteLine("Series Number: {0}", seasonList[episodeNumber].episodeNumberOverall);
+            Console.WriteLine("Season Episode Number: {0}", seasonList[episodeNumber].episodeNumberInSeason);
+            Console.WriteLine("Title: {0}", seasonList[episodeNumber].title);
+            if(seasonList[episodeNumber].titleRomaji != null)
+            {
+                Console.WriteLine("Title Romaji: {0}", seasonList[episodeNumber].titleRomaji);
+            }
+            if(seasonList[episodeNumber].titleKanji != null)
+            {
+                Console.WriteLine("Title Kanji: {0}", seasonList[episodeNumber].titleKanji);
+            }
+            Console.WriteLine("Date: {0}", seasonList[episodeNumber].originalAirDate.GetDateTimeFormats('d'));
         }
 
         private static void PrintLogo()
@@ -222,10 +242,6 @@ namespace WikiSeasonRetriever
             using (StringReader reader = new StringReader(wikitextContentOfSeasonSection))
             {
                 Boolean collectStatus = false; //Ignores all lines until 
-                
-                //test
-                int episodeCount = 0;
-                int episodeEndCount = 0;
 
                 while(reader.Peek() > -1)
                 {
@@ -233,11 +249,11 @@ namespace WikiSeasonRetriever
 
                     if(FindEpisode(currentLine))
                     {
+                        seasonList.Add(new Episode());
                         collectStatus = true;
                     }
                     else if (FindEndOfEpisode(currentLine))
                     {
-                        episodeEndCount++;
                         collectStatus = false;
                     }
                     else if (collectStatus)
@@ -245,14 +261,14 @@ namespace WikiSeasonRetriever
                         if(CheckEpisodeDetail(currentLine))
                         {
                             //Ignores <hr> tags and other non-episode details under the collectStatus of "true".
-                            Console.WriteLine(currentLine);
+                            CollectEpisodeDetails(seasonList[seasonList.Count - 1], currentLine);
                         }
 
                     }
                 }
-
-                Console.WriteLine("Episode count: {0}\nEpisode end: {1}", episodeCount, episodeEndCount);
             }
+
+            Console.WriteLine("Season list size: {0}", seasonList.Count);
         }
 
         //Finds an episode block
@@ -280,8 +296,106 @@ namespace WikiSeasonRetriever
             return validEpisodeDetail;
         }
 
+        private static void CollectEpisodeDetails(Episode episode, string readerLine)
+        {
+            string[] partialLines = readerLine.Split('=');
 
+            string episodeKey = ParseWikitext(partialLines[0]);
+            string episodeValue = ParseWikitext(partialLines[1]);
 
+            AssignValueToEpisode(episode, episodeKey, episodeValue);
+        }
+
+        private static string ParseWikitext(string readerLine)
+        {
+            string partialWikitext = readerLine.Trim();
+
+            if(partialWikitext.Length == 0)
+            {
+                return null;
+            }
+            else if(partialWikitext[0].Equals('|')) //Looks for Episode value substring.
+            {
+                return readerLine.Substring(2).Trim();
+            }
+            else if ((partialWikitext.Contains("{{") && partialWikitext.Contains("}}")) || (partialWikitext.Contains("[[") && partialWikitext.Contains("]]")))
+            {
+                string wikitextValue = "";
+                Regex pattern = new Regex(@"(?<=\[\[|\{\{).*?(?=\]\]|\}\})");
+
+                if(partialWikitext.Contains("[[") && !partialWikitext.Contains("Start date"))
+                {
+                    wikitextValue = pattern.Match(partialWikitext).Value.Trim();
+
+                    return ParseWikiLink(wikitextValue);
+                }
+                else
+                {
+                    wikitextValue = pattern.Match(partialWikitext).Value.Trim();
+                    return wikitextValue;
+                }
+
+            }
+            else
+            {
+                return readerLine.Trim();
+            }
+        }
+
+        private static string ParseWikiLink(string readerLine)
+        {
+            string linkLabel = "";
+
+            if(readerLine.Contains('|'))
+            {
+                string[] partialDetails = readerLine.Split('|');
+                linkLabel = partialDetails[1];
+
+                return linkLabel;
+            }
+            else
+            {
+                return linkLabel;
+            }
+        }
+
+        private static void AssignValueToEpisode(Episode episode, string episodeKey, string episodeValue)
+        {
+            switch (episodeKey)
+            {
+                case "1":
+                    episode.season = episodeValue;
+                    break;
+                case "EpisodeNumber":
+                    episode.episodeNumberOverall = Convert.ToSingle(episodeValue);
+                    break;
+                case "EpisodeNumber2":
+                    episode.episodeNumberInSeason = Convert.ToSingle(episodeValue);
+                    break;
+                case "Title":
+                    episode.title = episodeValue;
+                    break;
+                case "TranslitTitle":
+                    episode.titleRomaji = episodeValue;
+                    break;
+                case "NativeTitle":
+                    episode.titleKanji = episodeValue;
+                    break;
+                case "OriginalAirDate":
+                    episode.originalAirDate = ParseWikiDate(episodeValue);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private static DateTime ParseWikiDate(string episodeValue) //Value being passed in has to be trimmed
+        {
+            //Format in the form of: Start date|2016|4|10
+            string[] dateValues = episodeValue.Split("|");
+
+            return new DateTime(Convert.ToInt32(dateValues[1]), Convert.ToInt32(dateValues[2]), Convert.ToInt32(dateValues[3]));
+        }
 
     //End of Wikitext scraper and parser functionality
     }
