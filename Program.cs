@@ -291,7 +291,16 @@ namespace WikiSeasonRetriever
         private static Boolean CheckEpisodeDetail(string wikitemplateLine)
         {
             string readerLine = wikitemplateLine.Trim();
-            Boolean validEpisodeDetail = readerLine[0].Equals('|');
+            Boolean validEpisodeDetail = false;
+            
+            if (readerLine.Equals(""))
+            {
+                validEpisodeDetail = false;
+            }
+            else if(readerLine[0].Equals('|'))
+            {
+                validEpisodeDetail = true;
+            }
 
             return validEpisodeDetail;
         }
