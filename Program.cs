@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace WikiSeasonRetriever
 {
@@ -12,6 +13,7 @@ namespace WikiSeasonRetriever
         private static readonly HttpClient client = new HttpClient();
         private static List<Section> wikipediaPageSections;
         private static string subDirectory;
+        private static List<Episode> seasonList = new List<Episode>();
 
         static async Task Main(string[] args)
         {
@@ -36,12 +38,11 @@ namespace WikiSeasonRetriever
 
                 wikitextContentOfSeasonSection = await GetWikitextSeason(seasonPageURI, 'Y');
 
-                Console.WriteLine(wikitextContentOfSeasonSection);
             }
-            else
-            {
-                Console.WriteLine(wikitextContentOfSeasonSection);
-            }
+
+            //Parsing and Scraping for Episode Details
+            
+            StartParser(wikitextContentOfSeasonSection);
         }
 
         private static void PrintLogo()
@@ -214,5 +215,74 @@ namespace WikiSeasonRetriever
             return seasonPageURL;
 
         }
+
+    //Wikitext scraper and parser functionality
+        private static void StartParser(string wikitextContentOfSeasonSection)
+        {
+            using (StringReader reader = new StringReader(wikitextContentOfSeasonSection))
+            {
+                Boolean collectStatus = false; //Ignores all lines until 
+                
+                //test
+                int episodeCount = 0;
+                int episodeEndCount = 0;
+
+                while(reader.Peek() > -1)
+                {
+                    string currentLine = reader.ReadLine();
+
+                    if(FindEpisode(currentLine))
+                    {
+                        collectStatus = true;
+                    }
+                    else if (FindEndOfEpisode(currentLine))
+                    {
+                        episodeEndCount++;
+                        collectStatus = false;
+                    }
+                    else if (collectStatus)
+                    {
+                        if(CheckEpisodeDetail(currentLine))
+                        {
+                            //Ignores <hr> tags and other non-episode details under the collectStatus of "true".
+                            Console.WriteLine(currentLine);
+                        }
+
+                    }
+                }
+
+                Console.WriteLine("Episode count: {0}\nEpisode end: {1}", episodeCount, episodeEndCount);
+            }
+        }
+
+        //Finds an episode block
+        private static Boolean FindEpisode(string wikitemplateLine)
+        {
+            Boolean episodeTemplate = wikitemplateLine.Contains("{{Episode list");
+
+            return episodeTemplate;
+        }
+
+        //Finds the end of an episode block
+        private static Boolean FindEndOfEpisode(string wikitemplateLine)
+        {
+            Boolean episodeTemplate = wikitemplateLine.Equals("}}");
+
+            return episodeTemplate;
+        }
+
+        //Checks each line if it 
+        private static Boolean CheckEpisodeDetail(string wikitemplateLine)
+        {
+            string readerLine = wikitemplateLine.Trim();
+            Boolean validEpisodeDetail = readerLine[0].Equals('|');
+
+            return validEpisodeDetail;
+        }
+
+
+
+
+    //End of Wikitext scraper and parser functionality
     }
 }
