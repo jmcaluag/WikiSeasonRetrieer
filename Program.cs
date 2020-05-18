@@ -287,7 +287,7 @@ namespace WikiSeasonRetriever
             return episodeTemplate;
         }
 
-        //Checks each line if it 
+        //Checks each line if it a template "row" denoted by '|'
         private static Boolean CheckEpisodeDetail(string wikitemplateLine)
         {
             string readerLine = wikitemplateLine.Trim();
@@ -353,10 +353,12 @@ namespace WikiSeasonRetriever
 
         private static string ParseWikiLink(string readerLine)
         {
+            string linkLabel = readerLine;
+
             if(readerLine.Contains('|'))
             {
                 string[] partialDetails = readerLine.Split('|');
-                string linkLabel = partialDetails[1];
+                linkLabel = partialDetails[1];
             }
 
             return linkLabel;
