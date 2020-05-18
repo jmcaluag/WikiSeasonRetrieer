@@ -353,19 +353,15 @@ namespace WikiSeasonRetriever
 
         private static string ParseWikiLink(string readerLine)
         {
-            string linkLabel = "";
+            string linkLabel = readerLine;
 
             if(readerLine.Contains('|'))
             {
                 string[] partialDetails = readerLine.Split('|');
                 linkLabel = partialDetails[1];
+            }
 
-                return linkLabel;
-            }
-            else
-            {
-                return linkLabel;
-            }
+            return linkLabel;
         }
 
         private static void AssignValueToEpisode(Episode episode, string episodeKey, string episodeValue)
