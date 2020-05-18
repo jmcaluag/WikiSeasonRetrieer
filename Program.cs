@@ -353,12 +353,10 @@ namespace WikiSeasonRetriever
 
         private static string ParseWikiLink(string readerLine)
         {
-            string linkLabel = readerLine;
-
             if(readerLine.Contains('|'))
             {
                 string[] partialDetails = readerLine.Split('|');
-                linkLabel = partialDetails[1];
+                string linkLabel = partialDetails[1];
             }
 
             return linkLabel;
