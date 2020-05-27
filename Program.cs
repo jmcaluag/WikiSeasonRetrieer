@@ -276,7 +276,7 @@ namespace WikiSeasonRetriever
             return episodeTemplate;
         }
 
-        //Checks each line if it 
+        //Checks each line if it a template "row" denoted by '|'
         private static Boolean CheckEpisodeDetail(string wikitemplateLine)
         {
             string readerLine = wikitemplateLine.Trim();
