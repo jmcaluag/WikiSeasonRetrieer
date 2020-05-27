@@ -17,9 +17,6 @@ namespace WikiSeasonRetriever
 
         static async Task Main(string[] args)
         {
-
-            PrintLogo();
-
             Console.Write("Enter Wikipedia URL: " );
             string wikiURL = Console.ReadLine();
 
@@ -63,14 +60,6 @@ namespace WikiSeasonRetriever
                 Console.WriteLine("Title Kanji: {0}", seasonList[episodeNumber].titleKanji);
             }
             Console.WriteLine("Date: {0}", seasonList[episodeNumber].originalAirDate.GetDateTimeFormats('d'));
-        }
-
-        private static void PrintLogo()
-        {
-            string retrieverLogo = "\n\n\n                  -.`  -sys+:`                                                 \n                  hMMMNNMMMMMMMd/                                               \n                  yMMMMMMMMMMMMMMh                                              \n                 -yNMMMMMMMMMMMMMMs                                             \n                 -dMMMMMMMMMMMMMMMN.                                            \n                   `-dMMMMMMMMMMMMN-                                            \n                     yMMMMMMMMMMMM.                                             \n                     `NMMMMMMMMMMMs:                                            \n                      yMMMMMMMMMMMMMd+`                                         \n                      hMMMMMMMMMMMMMMMMy:                                       \n                     oMMMMMMMMMMMMMMMMMMMd:                                     \n                     yMMMMMMMMMMMMMMMMMMMMMo                                    \n                     :MMMMMMMMMMMMMMMMMMMMMMy`                                  \n                      hMMMMMMMMMMMMMMMMMMMMMMm`                                 \n                      .MMMMMMMMMMMMMMMMMMMMMMMm-                                \n                       MMMMMMMMMMMMMMMMMMMMMMMMN+                               \n                      `MMMMMMMMMMMMMMMMMMMMMMMMMM.                              \n                      yMMMMMMMMMMMMMMMMMMMMMMMMMMs                              \n                      NMMMMo/MMMMMMMMMMMMMMMMMMMMy                              \n                     /MMMMNsdMMMMMMMMMMMMMMMMMMMMm/.`                           \n                  :ydMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNNNmdhs:                  \n                 `syyyso+/::::::///++oooo++////:://///++osssss:                 \n\n\n";
-
-            Console.WriteLine("Golden Wiki Season Retriever");
-            Console.WriteLine(retrieverLogo);
         }
         
         //Work in Progress:
@@ -353,10 +342,12 @@ namespace WikiSeasonRetriever
 
         private static string ParseWikiLink(string readerLine)
         {
+            string linkLabel = readerLine;
+
             if(readerLine.Contains('|'))
             {
                 string[] partialDetails = readerLine.Split('|');
-                string linkLabel = partialDetails[1];
+                linkLabel = partialDetails[1];
             }
 
             return linkLabel;
